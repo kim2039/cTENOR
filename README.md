@@ -2,7 +2,7 @@
 cTENOR is tool for merging results of TE classify tools
 
 ## Pipeline
-！[pipeline diagram of cTENOR](cTENORdiagram.png)
+![pipeline diagram of cTENOR](cTENORdiagram.png)
 
 ## Requirements
 - DeepTE
