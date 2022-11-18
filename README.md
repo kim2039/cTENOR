@@ -7,7 +7,7 @@ cTENOR is tool for merging results of TE classify tools
 ## Requirements
 - DeepTE
 - TEclass
-- RFSB
+- RFSB (TransposonUltimate).   
 Now, the pipeline is NOT available.  
 So, the result file of RepeatModeler -> TEclass -> RFSB(TransposonUltimate) is needed.
 
