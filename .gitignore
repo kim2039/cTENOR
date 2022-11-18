@@ -1,9 +1,10 @@
 
 .vscode/launch.json
-.vscode/launch.json
-.vscode/launch.json
 Coelacanth.txt
 input.txt
 Lcha-families.fa
 out_cTENOR.csv
-input.txt
+
+cTENOR_divsum.csv
+cTENOR.divsum
+out.divsum
