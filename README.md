@@ -5,13 +5,16 @@ cTENOR is tool for merging results of TE classify tools
 ![pipeline diagram of cTENOR](cTENORdiagram.png)
 
 ## Requirements
-- DeepTE
-- TEclass
-- RFSB (TransposonUltimate).   
+- DeepTE (Yan et al., 2020)
+- TEclass (Abrusán et al., 2009)
+- RFSB (TransposonUltimate) (Riehl et al., 2022)
+
+
 Now, the pipeline is NOT available.  
-So, the result file of RepeatModeler -> TEclass -> RFSB(TransposonUltimate) is needed.
+So, the result file of RepeatModeler(\*-families.fa) -> TEclass(\*.fa) -> RFSB(TransposonUltimate)(\*.txt) is needed.
 
 ## Usage
+The L mode is not available now!
 ```
 cTENOR version 0.1.0
 usage: cTENOR.py [-h] [-fa FASTA] [-sum SUMMARY] [-i INPUT] [{L,S}]
