@@ -98,7 +98,7 @@ def divsum_parser(out, sum):
                             family = l[1]
                             break
 
-                    newline = [family, qid, line[2::]]
+                    newline = [family, qid, line[2], line[3], line[4]]
                     out_file.append(newline)
                 else: # No change for other lines
                     out_file.append(s_line.split('\t'))
