@@ -2,10 +2,6 @@ import argparse
 import subprocess
 import re, csv
 
-def run_tools():
-    # now developping!!!!!!!!!!!!!
-    #deepTE = subprocess.run(['python3', 'DeepTE.py -d ./own_data/coelacanth -o ./own_data/coelacanth -i ./own_data/coelacanth/Lcha-families.fa -sp M -m_dir ./own_data/Ibetoge/download_M_model_dir/Metazoans_model/'], capture_output=True)
-    return None
 
 def labeling(itext):
     out = [['RMid', 'family', 'origin']]
@@ -77,62 +73,20 @@ def labeling(itext):
     with open('out_cTENOR.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerows(out)
-    print(out)
 
     return out
 
-def divsum_parser(out, sum):
-    print('parsing divsum data...')
-    with open(sum) as f:
-        out_file = []
-        for s_line in f:
-            s_line = s_line.replace('\n', '')
-            if len(s_line.split('\t')) == 5:
-                if s_line[0:7] == 'Unknown':
-                    line = s_line.split('\t')
-                    qid = line[1] # Extract id of unknown
-
-                    # search in "out" list
-                    for l in out:
-                        if qid in l:
-                            family = l[1]
-                            break
-
-                    newline = [family, qid, line[2], line[3], line[4]]
-                    out_file.append(newline)
-                else: # No change for other lines
-                    out_file.append(s_line.split('\t'))
-
-    # save files as csv                    
-    with open('cTENOR_divsum.csv', 'w') as f:
-        del out_file[1]
-        tsv_writer = csv.writer(f)
-        tsv_writer.writerows(out_file)
 
 
+class InputFileError(Exception):
+    pass
 
 if __name__ == '__main__':
-    print("cTENOR version 0.1.0")
+    print("cTENOR version 0.2.0")
 
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("mode", help="choose run mode; L: change RepeatModeler Library, S: parse RepeatMasker divsum", nargs='?', choices=('L', 'S'))
-    parser.add_argument("-fa", "--fasta", help="library fasta file which is outputfile of RepeatModeler (Only required L mode)")
-    parser.add_argument("-sum", "--summary", help="Result divsum file of RepeatMasker")
-    parser.add_argument("-i", "--input", help="Result txt file of deepTE -> TEclass -> RF")
+    parser.add_argument("--fasta", "-f", help="library fasta file which is outputfile of RepeatModeler (Only required L mode)")
     args = parser.parse_args()
-    print(args.fasta, args.summary)
-    if not args.input:
-        print('Not input...run mode')
-        run_tools()
-
-    else: # 結果が与えられた場合
-        print('input found...parse mode')
-        if args.mode == "L" and args.fasta == None:
-            raise Exception
-        if args.mode == "S" and args.summary == None:
-            print("HOGE")
-            raise Exception
-
-        out = labeling(args.input)
-        divsum_parser(out, args.summary)
+    pass
+    
