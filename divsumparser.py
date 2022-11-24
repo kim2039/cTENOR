@@ -1,7 +1,5 @@
 import cTENOR
-import subprocess
-import re, csv
-import argparse
+import csv, argparse
 
 class InputFileError(Exception):
     pass
