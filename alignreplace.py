@@ -25,9 +25,7 @@ def replace_unknown(out, file, outname):
                 te_dict = rep.get(id_fline)
                 if te_dict == None:
                     te_dict = 'Unknown'
-                print(id_fline, te_dict)
                 newline = re.sub('#\S+', '#'+te_dict, fline)
-                print('FounD!', fline, newline)
 
             else:
                 newline = fline
