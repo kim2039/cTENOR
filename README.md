@@ -1,5 +1,5 @@
 # cTENOR
-cTENOR is tool for merging results of TE classify tools.  
+cTENOR (classified TE Non-Overlapping Result) is tool for merging results of TE classify tools.  
 Run DeepTE and RFSB to classify the Unknowns in the RepeatModeler results. The final classification is subsequently output based on the results of both tools.
 
 ## Requirements
@@ -8,7 +8,7 @@ Run DeepTE and RFSB to classify the Unknowns in the RepeatModeler results. The f
 - RFSB (TransposonUltimate) (Riehl et al., 2022)
 - pandas
 
-## install
+## Install
 ```
 $ conda create -n cTENOR python=3.10
 $ conda activate cTENOR
