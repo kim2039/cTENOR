@@ -1,10 +1,8 @@
 import argparse
 import pandas as pd
-import numpy as np
 import glob
 import re
 import subprocess, os
-import urllib.request
 
 def run_process(fasta, dir, sp):
     if os.path.exists('./cTENOR_configure'):
@@ -34,9 +32,12 @@ def run_process(fasta, dir, sp):
                 cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m_dir', dir_path]
             else:
                 cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m', sp]
+            print("Running DeepTE...")
             proc = subprocess.run(cmd, check=True)
-            
+            print("Done")
+
             # RFSB
+            print("Running RFSB...")
             cmd = ['transposon_classifier_RFSB', '-mode', 'classify', '-fastaFile', dir + 'opt_DeepTE.fasta', '-outputPredictionFile', dir + 'RFSB_result.txt']
             proc = subprocess.run(cmd, check=True)
 
@@ -49,87 +50,177 @@ def run_process(fasta, dir, sp):
         print("Error: run configure.py before running cTENOR")
         raise(InputFileError)
 
+def labeling(outdir):
+    print("Start labeling...")
+    # import and merge DeepTE files
+    allres = pd.read_csv(outdir + '/store_temp_opt_dir/opt_DeepTE.txt', sep='\t', names=('TE_name', 'DeepTE'))
+    allres = pd.concat([allres, allres['TE_name'].str.extract('#(.+)', expand=True).rename(columns={0: 'RepeatModeler'})], axis=1)
 
-def labeling(itext):
-    out = [['RMid', 'family', 'origin']]
-    with open(itext) as f:
-        flag = False
+    filelist = glob.glob(outdir + '/store_temp_opt_dir/*_probability_results.txt')
+    filelist.sort()
+
+    for f in filelist:
+        tmp = pd.read_csv(f, sep='\t')
+        allres = pd.merge(allres, tmp, on='TE_name', how='left')
+        
+    #allres.to_csv('cTENOR_Prob.csv')
+    allres['DeepTE'] = allres['DeepTE'].str.replace('unknown_nMITE', 'ClassII')
+    allres['DeepTE'] = allres['DeepTE'].str.replace('unknown_unknown', 'ClassII')
+    allres['DeepTE'] = allres['DeepTE'].str.replace('unknown_MITE', 'ClassII')
+    allres['DeepTE'] = allres['DeepTE'].str.replace('_nMITE', '')
+    allres['DeepTE'] = allres['DeepTE'].str.replace('_MITE', '')
+    allres['DeepTE'] = allres['DeepTE'].str.replace('_unknown', '')
+
+
+    # Classの確率を求める
+    TEclass = allres['DeepTE'].str.extract('(ClassI+)')
+    TEclass[0] = TEclass[0].str.replace('unknown', 'ClassII')
+
+    for c in TEclass.itertuples():
+        if pd.isnull(c[1]):
+            allres.at[c[0], "DeepTE_Class_prob"] = float('nan')
+        else:
+            
+            allres.at[c[0], "DeepTE_Class_prob"] = allres.at[c[0], c[1]]
+        
+    # Family の確率を求める
+    for c in allres.itertuples():
+        try:
+            if c.DeepTE != 'ClassI' and c.DeepTE != 'ClassII':
+                allres.at[c[0], "DeepTE_Family_prob"] = allres.at[c[0], c.DeepTE]
+
+        except KeyError:
+            allres.at[c[0], "DeepTE_Family_prob"] = float('nan')
+            
+    rest = allres[['TE_name', 'RepeatModeler', 'DeepTE', 'DeepTE_Class_prob', 'DeepTE_Family_prob']]
+    
+    # Initialize Dataframe
+    rfsb_df = pd.DataFrame(index=[], columns=['TE_name', 'RFSB', 'RFSB_Class_prob', 'RFSB_Family_prob'])
+    count = 0
+
+    # RFSBのデータ
+    with open(outdir + 'RFSB_result.txt') as f:
         for s_line in f:
-            if not flag:
-                if s_line[0] == '>':
-                    id = re.findall('>(.+?)#', s_line)[0]
-                    rm = re.findall('#(.+)__', s_line)[0]
-                    print(">", id)
-
-                    # RepeatModelerでUnknownの場合、DeepTEの結果を検索
-                    if rm == 'Unknown':
-                        dte = re.findall('__(.+?)\|', s_line)
-                        dte = dte[0].split('_')
-
-                        # DeepTEでもUnknownの場合、あるいは正確なドメインまでわからない場合はRFSBとTEclassの結果から導く
-                        if dte[0] == 'unknown' or (len(dte) < 3 and not 'Helitron' in dte):
-                            tec = re.findall('TEclass result: (.+)\|', s_line)[0]
-                            flag = True
-
-                        else: # DeepTEにアノテーションがついている場合
-                            # データをRM形式に戻す
-                            if 'Helitron' in dte:
-                                odte = 'RC/Helitron'
-                            elif 'SINE' in dte:
-                                if len(dte) >= 4:
-                                    odte = 'SINE/' + dte[3]
-                                else:
-                                    odte = 'SINE'
-                            elif 'LINE' in dte:
-                                if len(dte) >= 4:
-                                    odte = 'LINE/' + dte[3]
-                                else:
-                                    odte = 'LINE'
-                            else:
-                                odte = dte[1] + '/' + dte[2]
-                            out.append([id, odte, 'DeepTE'])
-                            print('DeepTE: ', odte, '\n')
-                        
-
-                    else: # RepeatModelerでアノテーションがついている場合
-                        out.append([id, rm, 'RepeatModeler'])
-                        print('RepeatModeler: ', rm, '\n')
-
-            else: # RFSBの読み込み
-                flag = False
-                rfsb = s_line.split(' ')[0].split(',')
-                rfsb = [s.replace('DNATransposon', 'DNA').replace('Retrotransposon', 'Retro').replace('TIR', 'DNA').replace('Tc1-Mariner', 'TcMar') for s in rfsb]
-                
-
-                # Compare RFSB and TEclass
-                if tec in rfsb:
+            if s_line[0] != "\n" and s_line[0] != '#':
+                if s_line[0] == '>':  # Header
+                    TE_name = re.findall('>(.+?)__', s_line)[0]
+                    
+                else:  # Prob
+                    # Class
+                    rfsb = s_line.split(' ')[0].split(',')
+                    rfsb = [s.replace('DNATransposon', 'DNA').replace('Retrotransposon', 'Retro').replace('TIR', 'DNA').replace('Tc1-Mariner', 'TcMar') for s in rfsb]
                     if 'Helitron' in rfsb:
-                        orfsb = 'RC/Helitron'
+                        rfsb = 'RC/Helitron'
                     else:
                         if len(rfsb) >= 3:
-                            orfsb = rfsb[1] + '/' + rfsb[0]
+                            rfsb = rfsb[1] + '/' + rfsb[0]
                         else:
-                            orfsb = rfsb[-1]
-                    out.append([id, orfsb, 'RFSB'])
-                    print('RFSB and TEclass: ', orfsb,'\n')
+                            rfsb = rfsb[-1]
+
+                    # Prob
+                    irfsb = s_line.split(' ')[1]
+                    dict_prob =  {'1':0, '1/1':1, '1/1/1':2, '1/1/2':3, '1/1/3':4, '1/2':5, '1/2/1':6, '1/2/2':7, '2':8, '2/1':9, '2/1/1':10, '2/1/2':11, '2/1/3':12, '2/1/4':13, '2/1/5':14, '2/1/6':15, '2/2':16, '2/3':17}
+                    prfsb = s_line.split(' ')[3:-1]
+                    class_rfsb = irfsb.split('/')[0]
+                    
+                    rfsb_df.loc[count] = [TE_name, rfsb, prfsb[dict_prob[class_rfsb]], prfsb[dict_prob[irfsb]]]
+                    count += 1
+                    
+    rfsb_df
+
+    # Rename
+    res = pd.merge(rest, rfsb_df, on='TE_name')
+    res['DeepTE'] = res['DeepTE'].str.replace('ClassIII_Helitron', 'RC/Helitron')
+    res['DeepTE'] = res['DeepTE'].str.replace('ClassII_', '')
+    res['DeepTE'] = res['DeepTE'].str.replace('ClassII', 'DNA')
+    res['DeepTE'] = res['DeepTE'].str.replace('ClassI_', '')
+    res['DeepTE'] = res['DeepTE'].str.replace('ClassI', 'Retroposon')
+    res['DeepTE'] = res['DeepTE'].str.replace('nLTR_', '')
+    res['DeepTE'] = res['DeepTE'].str.replace('nLTR', 'Retroposon')
+    res['DeepTE'] = res['DeepTE'].str.replace('_', '/')
+    res['RFSB_Family_prob'] = res['RFSB_Family_prob'].astype('float')
+    res['RFSB_Class_prob'] = res['RFSB_Class_prob'].astype('float')
+
+    for c in res.itertuples():
+        if not "Unknown" in c.RepeatModeler:
+            res.at[c[0], "Consensus"] = c.RepeatModeler
+        else:
+            # Unknown LTR classify
+            if "LTR" in c.RepeatModeler:   
+                #print(round(c.DeepTE_Family_prob, 1), c.RFSB_Family_prob)
+                if "LTR/" in c.DeepTE and "LTR/" in c.RFSB:  # Both
+                    if round(c.DeepTE_Family_prob, 1) >= c.RFSB_Family_prob:
+                        if c.DeepTE_Family_prob >= 0.8:
+                            res.at[c[0], "Consensus"] = c.DeepTE
+                        else:
+                            res.at[c[0], "Consensus"] = c.RepeatModeler
+                    else:
+                        if c.RFSB_Family_prob >= 0.8:
+                            res.at[c[0], "Consensus"] = c.RFSB
+                        else:
+                            res.at[c[0], "Consensus"] = c.RepeatModeler
+                        
+                # Only DeepTE
+                elif "LTR/" in c.DeepTE and not "LTR/" in c.RFSB:
+                    if c.DeepTE_Family_prob >= 0.8:
+                        res.at[c[0], "Consensus"] = c.DeepTE
+                    else:
+                        res.at[c[0], "Consensus"] = c.RepeatModeler
+                
+                # Only RFSB   
+                elif "LTR/" in c.RFSB and not "LTR/" in c.DeepTE:
+                    if c.RFSB_Family_prob >= 0.8:
+                        res.at[c[0], "Consensus"] = c.RFSB
+                    else:
+                        res.at[c[0], "Consensus"] = c.RepeatModeler
+                    
                 else:
-                    out.append([id, 'Unknown', 'NA'])
-                    print('unclear...ingnore the sequence', '\n')
-
-    # Output the result
-    with open('out_cTENOR.csv', 'w') as f:
-        writer = csv.writer(f)
-        writer.writerows(out)
-
-    return out
-
-
+                    res.at[c[0], "Consensus"] = c.RepeatModeler
+            
+            # Unknown classify
+            else:
+                if c.DeepTE == c.RFSB:
+                    res.at[c[0], "Consensus"] = c.DeepTE
+                else: 
+                    # same class
+                    if c.DeepTE.split('/')[0] == c.RFSB.split('/')[0]:
+                        if round(c.DeepTE_Family_prob, 1) >= c.RFSB_Family_prob:
+                            if round(c.DeepTE_Family_prob, 1) >= 0.8:
+                                res.at[c[0], "Consensus"] = c.DeepTE
+                            else:
+                                res.at[c[0], "Consensus"] = c.DeepTE.split('/')[0]
+                        else:
+                            if c.RFSB_Family_prob >= 0.8:
+                                res.at[c[0], "Consensus"] = c.RFSB
+                            else:
+                                res.at[c[0], "Consensus"] = c.DeepTE.split('/')[0]                
+                                
+                    
+                    # Not same class
+                    else:
+                        if round(c.DeepTE_Class_prob, 1) >= c.RFSB_Class_prob:
+                            if c.DeepTE == 'RC/Helitron':
+                                res.at[c[0], "Consensus"] = c.DeepTE
+                            else:
+                                if round(c.DeepTE_Family_prob, 1) >= 0.8:
+                                    res.at[c[0], "Consensus"] = c.DeepTE
+                                else:
+                                    res.at[c[0], "Consensus"] = c.DeepTE.split('/')[0]
+                        else:
+                            if c.RFSB_Family_prob >= 0.8:
+                                res.at[c[0], "Consensus"] = c.RFSB
+                            else:
+                                res.at[c[0], "Consensus"] = c.RFSB.split('/')[0]          
+    res.to_csv(outdir + '/cTENOR_out.csv')
+    print("Labeling completed!")
+    return res
 
 class InputFileError(Exception):
     pass
 
 if __name__ == '__main__':
-    print("cTENOR version 0.2.0")
+    version = '1.0.0'
+    print("cTENOR version " + version)
 
     parser = argparse.ArgumentParser()
     
@@ -137,18 +228,20 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--directory", help="Output directory", required=True)
     parser.add_argument("-sp", "--species", help="P or M or F or O. P:Plants, M:Metazoans, F:Fungi, and O: Others.", required=True)
     parser.add_argument("-s", "--skip", action='store_true', help="Skip running DeepTE and RFSB (Please assign the directory containing the results of the previous analysis)")
+    parser.add_argument("-v", "--version", action='version', help='show this version', version='')
 
     args = parser.parse_args()
     
+    # Directory path check
     if args.directory[-1] == '/':
         directory = args.directory
     else:
         directory = args.directory + '/'
 
+    # not skipping case
     if not args.skip:
         print('Processing DeepTE and RFSB...')
         run_process(args.fasta, directory, args.species)
 
-    else:  # Skipped
-        print('Skipped')
+    cternor_res = labeling(directory)
     
