@@ -1,6 +1,53 @@
 import argparse
-import subprocess
-import re, csv
+import pandas as pd
+import numpy as np
+import glob
+import re
+import subprocess, os
+import urllib.request
+
+def run_process(fasta, dir, sp):
+    if os.path.exists('./cTENOR_configure'):
+        print("configure file found")
+        with open('cTENOR_configure') as f:
+            s = f.read()
+            deepTE_dir = s.split('\n')[0]
+            RFSB_dir = s.split('\n')[1]
+
+        # DeepTE
+
+        # Check DeepTE h5 file exist
+        if sp == 'P':
+            sp_name = 'Plants'
+        elif sp == 'M':
+            sp_name = 'Metazoans'
+        elif sp == 'F':
+            sp_name = 'Fungi'
+        else:
+            sp_name = 'Others'
+
+        dir_path = dir + 'download_' + sp + '_model_dir/' + sp_name + '_model'
+        print(dir_path, os.path.exists(dir_path))
+
+        try:
+            if os.path.exists(dir_path):
+                cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m_dir', dir_path]
+            else:
+                cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m', sp]
+            proc = subprocess.run(cmd, check=True)
+            
+            # RFSB
+            cmd = ['transposon_classifier_RFSB', '-mode', 'classify', '-fastaFile', dir + 'opt_DeepTE.fasta', '-outputPredictionFile', dir + 'RFSB_result.txt']
+            proc = subprocess.run(cmd, check=True)
+
+            print('Done!')
+
+        except subprocess.CalledProcessError as e:
+            print(e)
+
+    else:
+        print("Error: run configure.py before running cTENOR")
+        raise(InputFileError)
 
 
 def labeling(itext):
@@ -86,7 +133,22 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("--fasta", "-f", help="library fasta file which is outputfile of RepeatModeler (Only required L mode)")
+    parser.add_argument("-f", "--fasta", help="library fasta file which is outputfile of RepeatModeler", required=True)
+    parser.add_argument("-d", "--directory", help="Output directory", required=True)
+    parser.add_argument("-sp", "--species", help="P or M or F or O. P:Plants, M:Metazoans, F:Fungi, and O: Others.", required=True)
+    parser.add_argument("-s", "--skip", action='store_true', help="Skip running DeepTE and RFSB (Please assign the directory containing the results of the previous analysis)")
+
     args = parser.parse_args()
-    pass
+    
+    if args.directory[-1] == '/':
+        directory = args.directory
+    else:
+        directory = args.directory + '/'
+
+    if not args.skip:
+        print('Processing DeepTE and RFSB...')
+        run_process(args.fasta, directory, args.species)
+
+    else:  # Skipped
+        print('Skipped')
     
