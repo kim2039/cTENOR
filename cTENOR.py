@@ -50,6 +50,31 @@ def run_process(fasta, dir, sp):
         print("Error: run configure.py before running cTENOR")
         raise(InputFileError)
 
+def replace(df, fasta, outdir):
+    df = df.set_index('TE_name')
+    # check file exist
+    filename = 'cTENOR_out.fasta'
+    if os.path.isfile(filename):
+        os.remove(filename)
+    with open(fasta) as f:
+        for fline in f:
+            # Find Unknown line
+            if 'Unknown' in fline:
+                id_fline = re.findall('(\S+)', fline)[0][1:]
+                te_name = df.at[id_fline, 'Consensus']
+                if te_name == None:
+                    te_name = 'Unknown'
+                newline = re.sub('#\S+', '#'+te_name, fline)
+
+            else:
+                newline = fline
+
+            # write the line
+            with open(outdir + filename, mode='a', encoding='utf-8') as outfile:
+                outfile.write(newline)
+
+    print('Save output fasta file as "cTENOR_out.fasta".')
+
 def labeling(outdir):
     print("Start labeling...")
     # import and merge DeepTE files
@@ -219,7 +244,7 @@ class InputFileError(Exception):
     pass
 
 if __name__ == '__main__':
-    version = '1.0.0'
+    version = '1.1.0'
     print("cTENOR version " + version)
 
     parser = argparse.ArgumentParser()
@@ -231,7 +256,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--version", action='version', help='show this version', version='')
 
     args = parser.parse_args()
-    
+
     # Directory path check
     if args.directory[-1] == '/':
         directory = args.directory
@@ -244,4 +269,4 @@ if __name__ == '__main__':
         run_process(args.fasta, directory, args.species)
 
     cternor_res = labeling(directory)
-    
+    replace(cternor_res, args.fasta, directory)
