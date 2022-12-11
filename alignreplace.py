@@ -18,17 +18,13 @@ def replace_unknown(out, file, outname):
             else:
                 rep.append([line[1], line[-1]])
     rep = dict(rep)
-    print(rep)
-
+    print("Running...")
     with open(file) as f:
         for fline in f:
             # Find Unknown line
             if '#Unknown' in fline or '#LTR/Unknown' in fline:
-                print(fline)
                 id_fline = re.findall('(\S+#\S+)', fline)[0]
-                print(id_fline)
                 te_dict = rep.get(id_fline)
-                print(te_dict)
                 if te_dict == None:
                     te_dict = 'Unknown'
                 newline = re.sub('#\S+', '#'+te_dict, fline)
