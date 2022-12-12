@@ -24,12 +24,12 @@ $ conda install -c derkevinriehl -c bioconda transposon_classifier_rfsb
 $ git clone https://github.com/kim2039/cTENOR.git
 $ cd cTENOR
 $ python configure.py
-# type the path for both tools.
+# type the full path for both tools.
 ```
 
 ## Usage
 ```
-cTENOR version 1.0.0
+cTENOR version 1.1.0
 usage: cTENOR.py [-h] -f FASTA -d DIRECTORY -sp SPECIES [-s] [-v]
 
 options:
@@ -43,3 +43,16 @@ options:
   -s, --skip            Skip running DeepTE and RFSB (Please assign the directory containing the results of the previous analysis)
   -v, --version         show this version
 ```
+
+## Output file
+- cTENOR_out.csv: Includes a consensus classification based on the probability of each tool
+- cTENOR_out.fasta: The FASTA file that replaces the original RepeatModeler Unknown classification with the new classification.
+
+## align file replace
+It is possible to rewrite the contents of the align file even after RepeatMasker has already been executed. This is intended for use in `calcDivergenceFromAling.pl`.
+- cTENOR_replace.align: This is an align file substituted with only the portions needed for analysis
+
+## Citation
+The cTENOR paper is currently in preparation; please cite the GitHub link and also cite the following two papers.
+- Haidong Yan, Aureliano Bombarely, Song Li 2020 DeepTE: a computational method for de novo classification of transposons with convolutional neural network. Bioinformatics, Volume 36, Issue 15, 1 August 2020, Pages 4269–4275. https://doi.org/10.1093/bioinformatics/btaa519
+- Kevin Riehl, Cristian Riccio, Eric A Miska, Martin Hemberg, TransposonUltimate: software for transposon classification, annotation and detection, Nucleic Acids Research, 2022; gkac136, https://doi.org/10.1093/nar/gkac136
