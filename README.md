@@ -52,6 +52,20 @@ options:
 It is possible to rewrite the contents of the align file even after RepeatMasker has already been executed. This is intended for use in `calcDivergenceFromAling.pl`.
 - cTENOR_replace.align: This is an align file substituted with only the portions needed for analysis
 
+```
+alignment file replace version 1.0.0 with cTENOR
+usage: alignreplace.py [-h] -a ALIGN_FILE -i INPUT [--prefix PREFIX] [-v]
+
+options:
+  -h, --help            show this help message and exit
+  -a ALIGN_FILE, --align_file ALIGN_FILE
+                        Alignment file of RepeatMasker; *.align
+  -i INPUT, --input INPUT
+                        Result csv file 'cTENOR_out.csv
+  --prefix PREFIX       prefix the output
+  -v, --version         show this version
+```
+
 ## Citation
 The cTENOR paper is currently in preparation; please cite the GitHub link and also cite the following two papers.
 - Haidong Yan, Aureliano Bombarely, Song Li 2020 DeepTE: a computational method for de novo classification of transposons with convolutional neural network. Bioinformatics, Volume 36, Issue 15, 1 August 2020, Pages 4269–4275. https://doi.org/10.1093/bioinformatics/btaa519

@@ -39,7 +39,7 @@ def replace_unknown(out, file, outname):
 
 if __name__ == '__main__':
     version = '1.0.0'
-    print("alignmentfile replace version" + version + "with cTENOR ")
+    print("alignment file replace version " + version + " with cTENOR ")
 
     parser = argparse.ArgumentParser()
     
