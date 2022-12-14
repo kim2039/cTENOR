@@ -244,14 +244,14 @@ class InputFileError(Exception):
     pass
 
 if __name__ == '__main__':
-    version = '1.1.0'
+    version = '1.1.1'
     print("cTENOR version " + version)
 
     parser = argparse.ArgumentParser()
     
     parser.add_argument("-f", "--fasta", help="library fasta file which is outputfile of RepeatModeler", required=True)
     parser.add_argument("-d", "--directory", help="Output directory", required=True)
-    parser.add_argument("-sp", "--species", help="P or M or F or O. P:Plants, M:Metazoans, F:Fungi, and O: Others.", required=True)
+    parser.add_argument("-sp", "--species", help="P or M or F or O. P:Plants, M:Metazoans, F:Fungi, and O: Others.", required=True, choices=['P', 'M', 'F', 'O'])
     parser.add_argument("-s", "--skip", action='store_true', help="Skip running DeepTE and RFSB (Please assign the directory containing the results of the previous analysis)")
     parser.add_argument("-v", "--version", action='version', help='show this version', version='')
 
