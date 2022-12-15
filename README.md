@@ -68,5 +68,6 @@ options:
 
 ## Citation
 The cTENOR paper is currently in preparation; please cite the GitHub link and also cite the following two papers.
+- Yuki Kimura. 2022. cTENOR. Github. https://github.com/kim2039/cTENOR.
 - Haidong Yan, Aureliano Bombarely, Song Li 2020 DeepTE: a computational method for de novo classification of transposons with convolutional neural network. Bioinformatics, Volume 36, Issue 15, 1 August 2020, Pages 4269–4275. https://doi.org/10.1093/bioinformatics/btaa519
 - Kevin Riehl, Cristian Riccio, Eric A Miska, Martin Hemberg, TransposonUltimate: software for transposon classification, annotation and detection, Nucleic Acids Research, 2022; gkac136, https://doi.org/10.1093/nar/gkac136
