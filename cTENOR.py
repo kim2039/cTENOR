@@ -68,9 +68,9 @@ def run_process(fasta, dir, sp):
 def replace(df, fasta, outdir):
     df = df.set_index('TE_name')
     # check file exist
-    filename = 'cTENOR_out.fasta'
-    if os.path.isfile(filename):
-        os.remove(filename)
+    filename = '/cTENOR_out.fasta'
+    if os.path.isfile(outdir+filename):
+        os.remove(outdir+filename)
     with open(fasta) as f:
         for fline in f:
             # Find Unknown line
