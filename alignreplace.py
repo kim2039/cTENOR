@@ -1,5 +1,6 @@
 import csv, argparse, re
 import os
+import pathlib
 
 def replace_unknown(out, file, outname):
     outdir = os.path.dirname(out)
@@ -38,16 +39,21 @@ def replace_unknown(out, file, outname):
     print('Done!')
 
 if __name__ == '__main__':
-    version = '1.0.0'
+    version = '1.0.1'
     print("alignment file replace version " + version + " with cTENOR ")
 
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("-a", "--align_file", help="Alignment file of RepeatMasker; *.align", required=True)
-    parser.add_argument("-i", "--input", help="Result csv file 'cTENOR_out.csv", required=True)
+    parser.add_argument("-a", "--align_file", help="Alignment file of RepeatMasker; *.align", required=True, type=pathlib.Path)
+    parser.add_argument("-i", "--input", help="Result csv file 'cTENOR_out.csv", required=True, type=pathlib.Path)
     parser.add_argument("--prefix", help="prefix the output")
     parser.add_argument("-v", "--version", action='version', help='show this version', version='')
     args = parser.parse_args()
+
+
+    # Path convert
+    align_file = str(args.align_file.resolve())
+    input_file = str(args.input.resolve())
 
     # out file name
     if args.prefix:
@@ -56,4 +62,4 @@ if __name__ == '__main__':
         outname = 'cTENOR_replace'
 
     # check the header of the file
-    replace_unknown(args.input, args.align_file, outname)
+    replace_unknown(input_file, align_file, outname)
