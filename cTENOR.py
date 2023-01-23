@@ -258,7 +258,7 @@ class InputFileError(Exception):
     pass
 
 if __name__ == '__main__':
-    version = '1.1.1'
+    version = '1.1.2'
     print("cTENOR version " + version)
 
     parser = argparse.ArgumentParser()
