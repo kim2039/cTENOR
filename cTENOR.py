@@ -8,6 +8,7 @@ import shutil
 
 def run_process(fasta, dir, sp):
     conf = os.path.dirname(os.path.abspath(__file__))+'/cTENOR_configure'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     if os.path.exists(conf):
         print("configure file found")
         with open(conf) as f:
@@ -28,9 +29,9 @@ def run_process(fasta, dir, sp):
             sp_name = 'Others'
 
         # mkdir the download directory
-        os.makedirs(str(os.path.dirname(os.path.abspath(__file__)))+'/tmp', exist_ok=True)
+        os.makedirs(str(base_dir)+'/tmp', exist_ok=True)
 
-        dir_path = str(conf)+ '/tmp/download_' + sp + '_model_dir/' + sp_name + '_model'
+        dir_path = str(base_dir)+ '/tmp/download_' + sp + '_model_dir/' + sp_name + '_model'
         print(dir_path, os.path.exists(dir_path))
 
         try:
@@ -44,7 +45,7 @@ def run_process(fasta, dir, sp):
             # move model dir
             if cmd[-1] == sp:
                 print('moving model dir...')
-                new_path = shutil.move(dir + '/download_' + sp + '_model_dir/', str(os.path.dirname(os.path.abspath(__file__)))+ '/tmp/')
+                new_path = shutil.move(dir + '/download_' + sp + '_model_dir/', str(base_dir)+ '/tmp/')
                 print('moved to ', new_path)
 
 
