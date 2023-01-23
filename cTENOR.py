@@ -3,11 +3,14 @@ import pandas as pd
 import glob
 import re
 import subprocess, os
+import pathlib
+import shutil
 
 def run_process(fasta, dir, sp):
-    if os.path.exists('./cTENOR_configure'):
+    conf = os.path.dirname(os.path.abspath(__file__))+'/cTENOR_configure'
+    if os.path.exists(conf):
         print("configure file found")
-        with open('cTENOR_configure') as f:
+        with open(conf) as f:
             s = f.read()
             deepTE_dir = s.split('\n')[0]
             RFSB_dir = s.split('\n')[1]
@@ -24,7 +27,10 @@ def run_process(fasta, dir, sp):
         else:
             sp_name = 'Others'
 
-        dir_path = dir + 'download_' + sp + '_model_dir/' + sp_name + '_model'
+        # mkdir the download directory
+        os.makedirs(str(os.path.dirname(os.path.abspath(__file__)))+'/tmp', exist_ok=True)
+
+        dir_path = str(conf)+ '/tmp/download_' + sp + '_model_dir/' + sp_name + '_model'
         print(dir_path, os.path.exists(dir_path))
 
         try:
@@ -34,6 +40,14 @@ def run_process(fasta, dir, sp):
                 cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m', sp]
             print("Running DeepTE...")
             proc = subprocess.run(cmd, check=True)
+
+            # move model dir
+            if cmd[-1] == sp:
+                print('moving model dir...')
+                new_path = shutil.move(dir + '/download_' + sp + '_model_dir/', str(os.path.dirname(os.path.abspath(__file__)))+ '/tmp/')
+                print('moved to ', new_path)
+
+
             print("Done")
 
             # RFSB
@@ -124,7 +138,7 @@ def labeling(outdir):
     count = 0
 
     # RFSBのデータ
-    with open(outdir + 'RFSB_result.txt') as f:
+    with open(outdir + '/RFSB_result.txt') as f:
         for s_line in f:
             if s_line[0] != "\n" and s_line[0] != '#':
                 if s_line[0] == '>':  # Header
@@ -249,24 +263,22 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     
-    parser.add_argument("-f", "--fasta", help="library fasta file which is outputfile of RepeatModeler", required=True)
-    parser.add_argument("-d", "--directory", help="Output directory", required=True)
+    parser.add_argument("-f", "--fasta", help="library fasta file which is outputfile of RepeatModeler", required=True, type=pathlib.Path)
+    parser.add_argument("-d", "--directory", help="Output directory", required=True, type=pathlib.Path)
     parser.add_argument("-sp", "--species", help="P or M or F or O. P:Plants, M:Metazoans, F:Fungi, and O: Others.", required=True, choices=['P', 'M', 'F', 'O'])
     parser.add_argument("-s", "--skip", action='store_true', help="Skip running DeepTE and RFSB (Please assign the directory containing the results of the previous analysis)")
     parser.add_argument("-v", "--version", action='version', help='show this version', version='')
 
     args = parser.parse_args()
 
-    # Directory path check
-    if args.directory[-1] == '/':
-        directory = args.directory
-    else:
-        directory = args.directory + '/'
+    # Path convert
+    fasta = str(args.fasta.resolve())
+    directory = str(args.directory.resolve())
 
     # not skipping case
     if not args.skip:
         print('Processing DeepTE and RFSB...')
-        run_process(args.fasta, directory, args.species)
+        run_process(fasta, directory, args.species)
 
     cternor_res = labeling(directory)
-    replace(cternor_res, args.fasta, directory)
+    replace(cternor_res, fasta, directory)
