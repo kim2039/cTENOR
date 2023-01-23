@@ -52,7 +52,7 @@ def run_process(fasta, dir, sp):
 
             # RFSB
             print("Running RFSB...")
-            cmd = ['transposon_classifier_RFSB', '-mode', 'classify', '-fastaFile', dir + 'opt_DeepTE.fasta', '-outputPredictionFile', dir + 'RFSB_result.txt']
+            cmd = ['transposon_classifier_RFSB', '-mode', 'classify', '-fastaFile', dir + '/opt_DeepTE.fasta', '-outputPredictionFile', dir + '/RFSB_result.txt']
             proc = subprocess.run(cmd, check=True)
 
             print('Done!')
