@@ -177,6 +177,7 @@ def labeling(outdir):
     res['DeepTE'] = res['DeepTE'].str.replace('ClassI', 'Retroposon')
     res['DeepTE'] = res['DeepTE'].str.replace('nLTR_', '')
     res['DeepTE'] = res['DeepTE'].str.replace('nLTR', 'Retroposon')
+    res['DeepTE'] = res['DeepTE'].str.replace('DIRS', 'LTR/DIRS')
     res['DeepTE'] = res['DeepTE'].str.replace('_', '/')
     res['RFSB_Family_prob'] = res['RFSB_Family_prob'].astype('float')
     res['RFSB_Class_prob'] = res['RFSB_Class_prob'].astype('float')
@@ -259,7 +260,7 @@ class InputFileError(Exception):
     pass
 
 if __name__ == '__main__':
-    version = '1.1.2'
+    version = '1.1.3'
     print("cTENOR version " + version)
 
     parser = argparse.ArgumentParser()
