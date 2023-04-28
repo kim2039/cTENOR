@@ -29,18 +29,20 @@ $ python configure.py
 
 ## Usage
 ```
-cTENOR version 1.1.0
-usage: cTENOR.py [-h] -f FASTA -d DIRECTORY -sp SPECIES [-s] [-v]
+cTENOR version 1.1.3
+usage: cTENOR.py [-h] -f FASTA -d DIRECTORY -sp {P,M,F,O} [-s] [-t THRESHOLD] [-v]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -f FASTA, --fasta FASTA
                         library fasta file which is outputfile of RepeatModeler
   -d DIRECTORY, --directory DIRECTORY
                         Output directory
-  -sp SPECIES, --species SPECIES
+  -sp {P,M,F,O}, --species {P,M,F,O}
                         P or M or F or O. P:Plants, M:Metazoans, F:Fungi, and O: Others.
   -s, --skip            Skip running DeepTE and RFSB (Please assign the directory containing the results of the previous analysis)
+  -t THRESHOLD, --threshold THRESHOLD
+                        set threshold for family classification
   -v, --version         show this version
 ```
 

@@ -90,7 +90,7 @@ def replace(df, fasta, outdir):
 
     print('Save output fasta file as "cTENOR_out.fasta".')
 
-def labeling(outdir):
+def labeling(outdir, threshold):
     print("Start labeling...")
     # import and merge DeepTE files
     allres = pd.read_csv(outdir + '/store_temp_opt_dir/opt_DeepTE.txt', sep='\t', names=('TE_name', 'DeepTE'))
@@ -191,26 +191,26 @@ def labeling(outdir):
                 #print(round(c.DeepTE_Family_prob, 1), c.RFSB_Family_prob)
                 if "LTR/" in c.DeepTE and "LTR/" in c.RFSB:  # Both
                     if round(c.DeepTE_Family_prob, 1) >= c.RFSB_Family_prob:
-                        if c.DeepTE_Family_prob >= 0.8:
+                        if c.DeepTE_Family_prob >= threshold:
                             res.at[c[0], "Consensus"] = c.DeepTE
                         else:
                             res.at[c[0], "Consensus"] = c.RepeatModeler
                     else:
-                        if c.RFSB_Family_prob >= 0.8:
+                        if c.RFSB_Family_prob >= threshold:
                             res.at[c[0], "Consensus"] = c.RFSB
                         else:
                             res.at[c[0], "Consensus"] = c.RepeatModeler
                         
                 # Only DeepTE
                 elif "LTR/" in c.DeepTE and not "LTR/" in c.RFSB:
-                    if c.DeepTE_Family_prob >= 0.8:
+                    if c.DeepTE_Family_prob >= threshold:
                         res.at[c[0], "Consensus"] = c.DeepTE
                     else:
                         res.at[c[0], "Consensus"] = c.RepeatModeler
                 
                 # Only RFSB   
                 elif "LTR/" in c.RFSB and not "LTR/" in c.DeepTE:
-                    if c.RFSB_Family_prob >= 0.8:
+                    if c.RFSB_Family_prob >= threshold:
                         res.at[c[0], "Consensus"] = c.RFSB
                     else:
                         res.at[c[0], "Consensus"] = c.RepeatModeler
@@ -226,12 +226,12 @@ def labeling(outdir):
                     # same class
                     if c.DeepTE.split('/')[0] == c.RFSB.split('/')[0]:
                         if round(c.DeepTE_Family_prob, 1) >= c.RFSB_Family_prob:
-                            if round(c.DeepTE_Family_prob, 1) >= 0.8:
+                            if round(c.DeepTE_Family_prob, 1) >= threshold:
                                 res.at[c[0], "Consensus"] = c.DeepTE
                             else:
                                 res.at[c[0], "Consensus"] = c.DeepTE.split('/')[0]
                         else:
-                            if c.RFSB_Family_prob >= 0.8:
+                            if c.RFSB_Family_prob >= threshold:
                                 res.at[c[0], "Consensus"] = c.RFSB
                             else:
                                 res.at[c[0], "Consensus"] = c.DeepTE.split('/')[0]                
@@ -243,12 +243,12 @@ def labeling(outdir):
                             if c.DeepTE == 'RC/Helitron':
                                 res.at[c[0], "Consensus"] = c.DeepTE
                             else:
-                                if round(c.DeepTE_Family_prob, 1) >= 0.8:
+                                if round(c.DeepTE_Family_prob, 1) >= threshold:
                                     res.at[c[0], "Consensus"] = c.DeepTE
                                 else:
                                     res.at[c[0], "Consensus"] = c.DeepTE.split('/')[0]
                         else:
-                            if c.RFSB_Family_prob >= 0.8:
+                            if c.RFSB_Family_prob >= threshold:
                                 res.at[c[0], "Consensus"] = c.RFSB
                             else:
                                 res.at[c[0], "Consensus"] = c.RFSB.split('/')[0]          
@@ -269,9 +269,15 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--directory", help="Output directory", required=True, type=pathlib.Path)
     parser.add_argument("-sp", "--species", help="P or M or F or O. P:Plants, M:Metazoans, F:Fungi, and O: Others.", required=True, choices=['P', 'M', 'F', 'O'])
     parser.add_argument("-s", "--skip", action='store_true', help="Skip running DeepTE and RFSB (Please assign the directory containing the results of the previous analysis)")
+    parser.add_argument("-t", "--threshold", type=float, help='set threshold for family classification', default=0.8)
     parser.add_argument("-v", "--version", action='version', help='show this version', version='')
 
     args = parser.parse_args()
+
+    # check threthold
+    if args.threshold > 1 or args.threshold <0:
+        print('set threthold 0 <= t <= 1')
+        raise(InputFileError)
 
     # Path convert
     fasta = str(args.fasta.resolve())
@@ -282,5 +288,5 @@ if __name__ == '__main__':
         print('Processing DeepTE and RFSB...')
         run_process(fasta, directory, args.species)
 
-    cternor_res = labeling(directory)
+    cternor_res = labeling(directory, args.threshold)
     replace(cternor_res, fasta, directory)
