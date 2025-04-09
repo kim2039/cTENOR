@@ -2,20 +2,14 @@
 cTENOR (classified TE Non-Overlapping Result) is tool for merging results of TE classify tools.  
 Run DeepTE and RFSB to classify the Unknowns in the RepeatModeler results. The final classification is subsequently output based on the results of both tools.
 
-## Requirements (not use Docker) 
-- python 3.6 ~ (3.9 tested)
-- DeepTE (Yan et al., 2020)
-- RFSB (TransposonUltimate) (Riehl et al., 2022)
-- pandas
-
-## Docker build and run
+## Docker build and run (Recommended)
 After you get a output file of RepeatModeler, run below commands
 ```
 docker build -t ctenor_env .
 docker run -it -v $(pwd)/:/app/current/ ctenor_env
 python cTENOR.py -f ./data/consensi.fa.classified -d TEST -sp M
 ```
-It works in Apple Sillicon M1 Macbook air  
+It works in Apple Silicon M1 Macbook air  
 
 ## Usage
 ```
@@ -60,6 +54,11 @@ options:
   -v, --version         show this version
 ```
 
+## Requirements (not use Docker) 
+- python 3.6 ~ (3.9 tested)
+- DeepTE (Yan et al., 2020)
+- RFSB (TransposonUltimate) (Riehl et al., 2022)
+- pandas
 
 ## Install (It is NOT recommended, it's out of date!)
 ```
