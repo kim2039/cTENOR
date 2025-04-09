@@ -1,0 +1,16 @@
+name: cTENOR
+channels:
+  - conda-forge
+  - bioconda
+  - derkevinriehl
+dependencies:
+  - python=3.9
+  - biopython=1.78
+  - keras
+  - numpy
+  - pandas
+  - scikit-learn=1.0.2
+  - pip
+  - pip:
+      - tensorflow==2.10.0
+  - transposon_classifier_rfsb

@@ -2,34 +2,25 @@
 cTENOR (classified TE Non-Overlapping Result) is tool for merging results of TE classify tools.  
 Run DeepTE and RFSB to classify the Unknowns in the RepeatModeler results. The final classification is subsequently output based on the results of both tools.
 
-## Requirements
-- python 3.6 ~ (3.10 tested)
+## Requirements (not use Docker) 
+- python 3.6 ~ (3.9 tested)
 - DeepTE (Yan et al., 2020)
 - RFSB (TransposonUltimate) (Riehl et al., 2022)
 - pandas
 
-## Install
+## Docker build and run
+After you get a output file of RepeatModeler, run below commands
 ```
-$ conda create -n cTENOR python=3.10
-$ conda activate cTENOR
-
-# Install DeepTE
-$ git clone https://github.com/LiLabAtVT/DeepTE.git
-$ conda install biopython keras numpy tensorflow pandas
-
-# Install RFSB
-$ conda install -c derkevinriehl -c bioconda transposon_classifier_rfsb 
-
-# Install cTENOR
-$ git clone https://github.com/kim2039/cTENOR.git
-$ cd cTENOR
-$ python configure.py
-# type the full path for both tools.
+docker build -t ctenor_env .
+docker run -it -v $(pwd)/:/app/current/ ctenor_env
+python cTENOR.py -f ./data/consensi.fa.classified -d TEST -sp M
 ```
+It works in Apple Sillicon M1 Macbook air  
 
 ## Usage
 ```
-cTENOR version 1.1.3
+cTENOR version 1.2.0
+Author: Yuki Kimura 2022-2025, MIT licence
 usage: cTENOR.py [-h] -f FASTA -d DIRECTORY -sp {P,M,F,O} [-s] [-t THRESHOLD] [-v]
 
 optional arguments:
@@ -45,6 +36,7 @@ optional arguments:
                         set threshold for family classification
   -v, --version         show this version
 ```
+
 
 ## Output file
 - cTENOR_out.csv: Includes a consensus classification based on the probability of each tool
@@ -66,6 +58,26 @@ options:
                         Result csv file 'cTENOR_out.csv
   --prefix PREFIX       prefix the output
   -v, --version         show this version
+```
+
+
+## Install (It is NOT recommended, it's out of date!)
+```
+$ conda create -n cTENOR python=3.9
+$ conda activate cTENOR
+
+# Install DeepTE
+$ git clone https://github.com/LiLabAtVT/DeepTE.git
+$ conda install biopython keras numpy tensorflow pandas
+
+# Install RFSB
+$ conda install -c derkevinriehl -c bioconda transposon_classifier_rfsb 
+
+# Install cTENOR
+$ git clone https://github.com/kim2039/cTENOR.git
+$ cd cTENOR
+$ python configure.py
+# type the full path for both tools.
 ```
 
 ## Citation

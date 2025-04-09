@@ -4,7 +4,34 @@ import glob
 import re
 import subprocess, os
 import pathlib
+import tarfile
+import tempfile
+import urllib.request
 import shutil
+
+
+def download_and_extract_model(sp):
+    # Save dir
+    target_dir = f"./tmp/download_{sp}_model_dir/"
+    os.makedirs(target_dir, exist_ok=True)
+
+    # Download the model
+    if sp == 'P':
+        url = 'https://de.cyverse.org/dl/d/89D2FE7A-41BA-4F64-80E2-B9C26D49E99F/Plants_model.tar.gz'
+    elif sp == 'M':
+        url = "https://de.cyverse.org/dl/d/441459EF-6DDD-41A5-A9AB-1D5D13049F18/Metazoans_model.tar.gz"
+    elif sp == 'F':
+        url = 'https://de.cyverse.org/dl/d/8B112733-063A-4DE9-89EC-22A062D8807B/Fungi_model.tar.gz'
+    else:
+        url = 'https://de.cyverse.org/dl/d/34CF8ACB-0B1F-4210-8359-366A70539F01/Others_model.tar.gz'
+
+    with tempfile.NamedTemporaryFile(suffix=".tar.gz") as tmp_file:
+        print(f"Downloading from {url} ...")
+        urllib.request.urlretrieve(url, tmp_file.name)
+
+        with tarfile.open(tmp_file.name, "r:gz") as tar:
+            tar.extractall(path=target_dir)
+    print(f"Model extracted to: {target_dir}")
 
 def run_process(fasta, dir, sp):
     conf = os.path.dirname(os.path.abspath(__file__))+'/cTENOR_configure'
@@ -38,7 +65,9 @@ def run_process(fasta, dir, sp):
             if os.path.exists(dir_path):
                 cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m_dir', dir_path]
             else:
-                cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m', sp]
+                download_and_extract_model(sp)
+                cmd = ['python', deepTE_dir+'DeepTE.py', '-d', dir, '-o', dir, '-i', fasta, '-sp', sp, '-m_dir', dir_path]
+
             print("Running DeepTE...")
             proc = subprocess.run(cmd, check=True)
 
@@ -260,8 +289,9 @@ class InputFileError(Exception):
     pass
 
 if __name__ == '__main__':
-    version = '1.1.3'
+    version = '1.2.0'
     print("cTENOR version " + version)
+    print("Author: Yuki Kimura 2022-2025, MIT licence")
 
     parser = argparse.ArgumentParser()
     

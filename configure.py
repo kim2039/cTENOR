@@ -7,7 +7,7 @@ def addslash(i: str):
 
 if __name__ == '__main__':
     print("cTENOR configure")
-    print("(c) Yuki Kimura 2022, MIT licence")
+    print("Yuki Kimura 2022-2025, MIT licence")
 
     print('Enter FULL PATH of DeepTE directory:')
     path_deepTE = subprocess.run(['which', 'DeepTE.py'], stdout=subprocess.PIPE, text=True)
